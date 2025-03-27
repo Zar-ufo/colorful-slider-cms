@@ -3,7 +3,35 @@ import React from 'react';
 import HeroSlider from '@/components/HeroSlider';
 import ProductGrid from '@/components/ProductGrid';
 import CategorySection from '@/components/CategorySection';
-import { Product } from '@/types';
+import { Product, HeroSlide } from '@/types';
+
+// Mock hero slides data
+const heroSlides: HeroSlide[] = [
+  {
+    id: '1',
+    title: 'Modern Minimalist Designs',
+    subtitle: 'Discover our collection of sleek, contemporary home decor',
+    imageUrl: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    buttonText: 'Shop Now',
+    buttonLink: '/products'
+  },
+  {
+    id: '2',
+    title: 'Elegant Home Accessories',
+    subtitle: 'Transform your space with our curated collection',
+    imageUrl: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?ixlib=rb-4.0.3&auto=format&fit=crop&w=2832&q=80',
+    buttonText: 'Explore',
+    buttonLink: '/collections'
+  },
+  {
+    id: '3',
+    title: 'Seasonal Collections',
+    subtitle: 'Fresh new designs for every season',
+    imageUrl: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?ixlib=rb-4.0.3&auto=format&fit=crop&w=2092&q=80',
+    buttonText: 'View Collection',
+    buttonLink: '/products'
+  }
+];
 
 // Mock featured products data
 const featuredProducts: Product[] = [
@@ -61,7 +89,7 @@ const Index: React.FC = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <HeroSlider />
+      <HeroSlider slides={heroSlides} />
       
       {/* Category Section */}
       <CategorySection className="mt-12" />
