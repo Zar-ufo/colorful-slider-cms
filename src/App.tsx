@@ -10,6 +10,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Collections from "./pages/Collections";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/collections" element={<Collections />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin-login" element={<AdminLogin />} />
+              <Route path="/checkout" element={<Checkout />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

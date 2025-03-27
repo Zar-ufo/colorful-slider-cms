@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Home, Package, Users, Settings, LogOut, Plus, Edit, Trash2, 
-  Image, Search, Check, X, ArrowUpDown, ChevronLeft, ChevronRight 
+  Image, Search, Check, X, ArrowUpDown, ChevronLeft, ChevronRight,
+  ShoppingBag 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product, Category } from '@/types';
 import { cn } from '@/lib/utils';
 
-// Mock data (in a real app, this would come from Supabase)
 const mockProducts: Product[] = [
   {
     id: '1',
@@ -35,7 +34,6 @@ const mockProducts: Product[] = [
     featured: false,
     created_at: new Date().toISOString()
   },
-  // ... more products (using the ones from our Products page)
 ];
 
 const mockCategories: Category[] = [
@@ -46,8 +44,36 @@ const mockCategories: Category[] = [
   { id: '5', name: 'Furniture', description: 'Tables, chairs, and other furniture' }
 ];
 
-// Admin panel sections
-type Section = 'dashboard' | 'products' | 'customers' | 'settings';
+interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+}
+
+interface OrderCustomer {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
+interface Order {
+  id: string;
+  items: OrderItem[];
+  customer: OrderCustomer;
+  total: number;
+  notes?: string;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  created_at: string;
+}
+
+type Section = 'dashboard' | 'products' | 'customers' | 'settings' | 'orders';
 
 const Admin: React.FC = () => {
   const navigate = useNavigate();
@@ -55,25 +81,23 @@ const Admin: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   
-  // Data states
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   
-  // Modal states
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
-  // Search and pagination states
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 5;
 
   useEffect(() => {
-    // Check if user is authenticated
     const checkAuth = async () => {
       const isAdmin = localStorage.getItem('adminAuthenticated') === 'true';
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
       
-      if (!isAdmin) {
+      if (!isAdmin && (!user || user.role !== 'admin')) {
         navigate('/admin-login');
         return;
       }
@@ -81,9 +105,17 @@ const Admin: React.FC = () => {
       setIsAuthenticated(true);
       setIsLoading(false);
       
-      // In a real app, fetch data from Supabase
       setProducts(mockProducts);
       setCategories(mockCategories);
+      
+      const savedOrders = localStorage.getItem('orders');
+      if (savedOrders) {
+        try {
+          setOrders(JSON.parse(savedOrders));
+        } catch (e) {
+          console.error('Failed to parse orders from localStorage', e);
+        }
+      }
     };
     
     checkAuth();
@@ -91,6 +123,7 @@ const Admin: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuthenticated');
+    localStorage.removeItem('user');
     toast.success('Logged out successfully');
     navigate('/admin-login');
   };
@@ -106,19 +139,15 @@ const Admin: React.FC = () => {
   };
 
   const handleDeleteProduct = (productId: string) => {
-    // In a real app, delete from Supabase
     setProducts(products.filter(p => p.id !== productId));
     toast.success('Product deleted successfully');
   };
 
   const handleSaveProduct = (product: Product) => {
-    // In a real app, save to Supabase
     if (editingProduct) {
-      // Update existing product
       setProducts(products.map(p => p.id === product.id ? product : p));
       toast.success('Product updated successfully');
     } else {
-      // Add new product with generated ID
       const newProduct = {
         ...product,
         id: Date.now().toString(),
@@ -132,17 +161,26 @@ const Admin: React.FC = () => {
     setEditingProduct(null);
   };
 
-  // Filter products based on search
   const filteredProducts = products.filter(
     product => product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Calculate pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const currentProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
 
   if (isLoading) {
     return (
@@ -153,12 +191,11 @@ const Admin: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    return null; // Redirect handled in useEffect
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
       <aside className="w-20 md:w-64 bg-white shadow-md flex flex-col">
         <div className="p-4 md:p-6 border-b">
           <h1 className="text-xl font-bold hidden md:block">HiyoRi Admin</h1>
@@ -190,6 +227,19 @@ const Admin: React.FC = () => {
           >
             <Package size={20} />
             <span className="ml-3 hidden md:inline">Products</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveSection('orders')}
+            className={cn(
+              "flex items-center w-full p-3 rounded-lg transition-colors",
+              activeSection === 'orders' 
+                ? "bg-black text-white" 
+                : "hover:bg-gray-100"
+            )}
+          >
+            <ShoppingBag size={20} />
+            <span className="ml-3 hidden md:inline">Orders</span>
           </button>
           
           <button
@@ -230,14 +280,12 @@ const Admin: React.FC = () => {
         </div>
       </aside>
       
-      {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        {/* Dashboard Section */}
         {activeSection === 'dashboard' && (
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-medium mb-2">Total Products</h3>
                 <p className="text-3xl font-bold">{products.length}</p>
@@ -249,6 +297,11 @@ const Admin: React.FC = () => {
               </div>
               
               <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-medium mb-2">Orders</h3>
+                <p className="text-3xl font-bold">{orders.length}</p>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-medium mb-2">Featured Products</h3>
                 <p className="text-3xl font-bold">
                   {products.filter(p => p.featured).length}
@@ -256,45 +309,65 @@ const Admin: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold mb-4">Recent Products</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-3 px-2">Name</th>
-                      <th className="text-left py-3 px-2">Category</th>
-                      <th className="text-left py-3 px-2">Price</th>
-                      <th className="text-left py-3 px-2">Featured</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.slice(0, 5).map(product => (
-                      <tr key={product.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-2">{product.name}</td>
-                        <td className="py-3 px-2">{product.category}</td>
-                        <td className="py-3 px-2">${product.price}</td>
-                        <td className="py-3 px-2">
-                          {product.featured ? (
-                            <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                              Featured
-                            </span>
-                          ) : (
-                            <span className="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs">
-                              Regular
-                            </span>
-                          )}
-                        </td>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-bold mb-4">Recent Products</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-2">Name</th>
+                        <th className="text-left py-3 px-2">Category</th>
+                        <th className="text-left py-3 px-2">Price</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {products.slice(0, 5).map(product => (
+                        <tr key={product.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-2">{product.name}</td>
+                          <td className="py-3 px-2">{product.category}</td>
+                          <td className="py-3 px-2">${product.price}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-2">Order ID</th>
+                        <th className="text-left py-3 px-2">Customer</th>
+                        <th className="text-left py-3 px-2">Total</th>
+                        <th className="text-left py-3 px-2">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.slice(0, 5).map(order => (
+                        <tr key={order.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-2">#{order.id.slice(-5)}</td>
+                          <td className="py-3 px-2">{order.customer.firstName} {order.customer.lastName}</td>
+                          <td className="py-3 px-2">{formatCurrency(order.total)}</td>
+                          <td className="py-3 px-2">{new Date(order.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                      {orders.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="py-4 text-center text-gray-500">No orders yet</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         )}
         
-        {/* Products Section */}
         {activeSection === 'products' && (
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
@@ -413,7 +486,6 @@ const Admin: React.FC = () => {
                 </table>
               </div>
               
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="py-4 px-6 bg-gray-50 border-t flex justify-between items-center">
                   <div className="text-sm text-gray-500">
@@ -442,7 +514,66 @@ const Admin: React.FC = () => {
           </div>
         )}
         
-        {/* Customers Section (placeholder) */}
+        {activeSection === 'orders' && (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-6">Orders</h1>
+            
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b">
+                      <th className="text-left py-3 px-4">Order ID</th>
+                      <th className="text-left py-3 px-4">Customer</th>
+                      <th className="text-left py-3 px-4">Items</th>
+                      <th className="text-left py-3 px-4">Total</th>
+                      <th className="text-left py-3 px-4">Date</th>
+                      <th className="text-left py-3 px-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(order => (
+                      <tr key={order.id} className="border-b hover:bg-gray-50">
+                        <td className="py-3 px-4 font-medium">#{order.id.slice(-5)}</td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <div className="font-medium">{order.customer.firstName} {order.customer.lastName}</div>
+                            <div className="text-sm text-gray-500">{order.customer.email}</div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="space-y-1">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="text-sm">
+                                {item.quantity}x {item.productName}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-medium">{formatCurrency(order.total)}</td>
+                        <td className="py-3 px-4 text-sm">{formatDate(order.created_at)}</td>
+                        <td className="py-3 px-4">
+                          <span className="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                            {order.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    
+                    {orders.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-gray-500">
+                          No orders yet
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {activeSection === 'customers' && (
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Customers</h1>
@@ -452,7 +583,6 @@ const Admin: React.FC = () => {
           </div>
         )}
         
-        {/* Settings Section (placeholder) */}
         {activeSection === 'settings' && (
           <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Settings</h1>
@@ -463,7 +593,6 @@ const Admin: React.FC = () => {
         )}
       </main>
       
-      {/* Product Modal */}
       {isProductModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -479,7 +608,6 @@ const Admin: React.FC = () => {
               </button>
             </div>
             
-            {/* Product Form (simplified) */}
             <div className="p-6">
               <div className="space-y-6">
                 <div>
@@ -556,7 +684,6 @@ const Admin: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Product Images
                   </label>
-                  {/* Image upload placeholder */}
                   <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
                     <Image size={24} className="mx-auto text-gray-400" />
                     <p className="mt-2 text-sm text-gray-500">
@@ -578,7 +705,6 @@ const Admin: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    // Mock save operation with current product data
                     const savedProduct: Product = editingProduct
                       ? { ...editingProduct }
                       : {

@@ -42,3 +42,28 @@ export interface SearchResult {
   products: Product[];
   totalCount: number;
 }
+
+export interface Order {
+  id: string;
+  items: {
+    productId: string;
+    productName: string;
+    quantity: number;
+    price: number;
+  }[];
+  customer: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  total: number;
+  notes?: string;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  created_at: string;
+}

@@ -110,8 +110,12 @@ const Cart: React.FC = () => {
                 <span>Total</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
-              <Button className="w-full mt-6">
-                Proceed to Checkout
+              <Button 
+                className="w-full mt-6" 
+                asChild
+                onClick={() => setIsOpen(false)}
+              >
+                <Link to="/checkout">Proceed to Checkout</Link>
               </Button>
               <Button 
                 variant="outline" 

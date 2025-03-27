@@ -29,6 +29,13 @@ const mockUsers: User[] = [
     firstName: 'John',
     lastName: 'Doe',
     role: 'customer'
+  },
+  {
+    id: '3',
+    email: 'abdullahzarif050@gmail.com',
+    firstName: 'Abdullah',
+    lastName: 'Zarif',
+    role: 'admin'
   }
 ];
 
@@ -59,7 +66,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Find user by email
     const foundUser = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
     
-    if (foundUser && password === 'password') { // In real app, would check hashed password
+    // For the specific admin user, check the specific password
+    if (email.toLowerCase() === 'abdullahzarif050@gmail.com' && password === 'Zariffatiha11') {
+      const adminUser = mockUsers.find(u => u.email.toLowerCase() === 'abdullahzarif050@gmail.com');
+      if (adminUser) {
+        setUser(adminUser);
+        localStorage.setItem('user', JSON.stringify(adminUser));
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${adminUser.firstName || adminUser.email}!`,
+        });
+        setIsLoading(false);
+        return true;
+      }
+    } else if (foundUser && password === 'password') { // For other users, check the default password
       setUser(foundUser);
       localStorage.setItem('user', JSON.stringify(foundUser));
       toast({
@@ -68,15 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       setIsLoading(false);
       return true;
-    } else {
-      toast({
-        title: "Login failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-      return false;
     }
+    
+    // If we reach here, login failed
+    toast({
+      title: "Login failed",
+      description: "Invalid email or password. Please try again.",
+      variant: "destructive"
+    });
+    setIsLoading(false);
+    return false;
   };
 
   const register = async (

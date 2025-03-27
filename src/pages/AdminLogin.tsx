@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,29 +11,39 @@ const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
+
+  // Check for redirect from
+  const from = location.state?.from || '/admin';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from);
+    }
+  }, [isAuthenticated, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // In a real app, this would be a call to Supabase auth
-      // For demo purposes, we'll use a mock login
-      if (email === 'admin@example.com' && password === 'password') {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use the login function from AuthContext
+      const success = await login(email, password);
+      
+      if (success) {
+        // Also set adminAuthenticated flag if it's an admin
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (user && user.role === 'admin') {
+          localStorage.setItem('adminAuthenticated', 'true');
+        }
         
-        // Store auth in localStorage (in real app, Supabase would handle this)
-        localStorage.setItem('adminAuthenticated', 'true');
-        
-        toast.success('Login successful');
-        navigate('/admin');
-      } else {
-        throw new Error('Invalid credentials');
+        navigate(from);
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Invalid email or password');
+      toast.error('Error during login');
     } finally {
       setIsLoading(false);
     }
@@ -44,9 +55,11 @@ const AdminLogin: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="p-6 sm:p-8">
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-display font-bold">Admin Login</h1>
+              <h1 className="text-2xl font-display font-bold">Login</h1>
               <p className="text-gray-600 mt-2">
-                Enter your credentials to access the admin panel
+                {from === '/admin' 
+                  ? 'Enter your credentials to access the admin panel' 
+                  : 'Login to your account to continue'}
               </p>
             </div>
 
@@ -65,7 +78,7 @@ const AdminLogin: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                    placeholder="admin@example.com"
+                    placeholder="your@email.com"
                     required
                   />
                 </div>
@@ -85,7 +98,7 @@ const AdminLogin: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                    placeholder="password"
+                    placeholder="Enter your password"
                     required
                   />
                   <button
@@ -114,8 +127,14 @@ const AdminLogin: React.FC = () => {
             </form>
 
             <div className="mt-6 text-center text-sm">
+              <p className="text-gray-600 mb-2">
+                Demo credentials:
+              </p>
               <p className="text-gray-600">
-                Demo credentials: admin@example.com / password
+                Admin: abdullahzarif050@gmail.com / Zariffatiha11
+              </p>
+              <p className="text-gray-600">
+                Customer: customer@example.com / password
               </p>
             </div>
           </div>
