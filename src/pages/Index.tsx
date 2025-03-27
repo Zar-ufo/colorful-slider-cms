@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HeroSlider from '@/components/HeroSlider';
 import ProductGrid from '@/components/ProductGrid';
+import ProductCard from '@/components/ProductCard'; // Add the missing import
 import { ArrowRight } from 'lucide-react';
 import { Product, HeroSlide } from '@/types';
 

@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
 import { Product, Category } from '@/types';
-import { Slider, Search, X, Filter } from 'lucide-react';
+import { Sliders, Search, X, Filter } from 'lucide-react'; // Changed Slider to Sliders
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
