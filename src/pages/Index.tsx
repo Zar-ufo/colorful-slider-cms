@@ -1,9 +1,10 @@
-
 import React from 'react';
+import Navbar from '@/components/Navbar';
 import HeroSlider from '@/components/HeroSlider';
 import ProductGrid from '@/components/ProductGrid';
 import CategorySection from '@/components/CategorySection';
 import { Product, HeroSlide } from '@/types';
+import Footer from '@/components/Footer';
 
 // Mock hero slides data
 const heroSlides: HeroSlide[] = [
@@ -88,6 +89,9 @@ const featuredProducts: Product[] = [
 const Index: React.FC = () => {
   return (
     <div className="min-h-screen">
+      {/* Navbar */}
+      <Navbar />
+      
       {/* Hero Section */}
       <HeroSlider slides={heroSlides} />
       
@@ -103,6 +107,9 @@ const Index: React.FC = () => {
         compact={true}
         className="mt-12"
       />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
