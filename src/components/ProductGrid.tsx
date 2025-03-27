@@ -10,14 +10,16 @@ interface ProductGridProps {
   subtitle?: string;
   columns?: 2 | 3 | 4;
   className?: string;
+  compact?: boolean; // New prop to make cards smaller
 }
 
 const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   title,
   subtitle,
-  columns = 2, // Changed default from 4 to 2 to ensure at least 2 products per row
+  columns = 2,
   className,
+  compact = false, // Default to normal size
 }) => {
   if (!products || products.length === 0) {
     return null;
@@ -43,7 +45,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
           "grid gap-6 sm:gap-8",
           columns === 2 && "grid-cols-1 sm:grid-cols-2",
           columns === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-          columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+          compact && "gap-4 sm:gap-6" // Tighter gap for compact view
         )}
       >
         {products.map((product) => (
@@ -51,6 +54,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
             key={product.id} 
             product={product} 
             featured={product.featured}
+            compact={compact}
           />
         ))}
       </div>

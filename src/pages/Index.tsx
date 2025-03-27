@@ -181,9 +181,9 @@ const HomePage: React.FC = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {featuredProducts.map(product => (
-            <ProductCard key={product.id} product={product} featured={product.featured} />
+            <ProductCard key={product.id} product={product} featured={false} compact={true} />
           ))}
         </div>
       </section>
@@ -227,6 +227,7 @@ const HomePage: React.FC = () => {
         title="New Arrivals"
         subtitle="The latest additions to our collection"
         columns={4}
+        compact={true}
       />
       
       {/* Instagram Section */}
