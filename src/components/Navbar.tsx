@@ -1,8 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingBag, Search, User } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Cart from './Cart';
+import AuthButtons from './AuthButtons';
+import SearchDialog from './SearchDialog';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,15 +76,9 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center space-x-6">
-          <button className="opacity-80 hover:opacity-100 transition-opacity">
-            <Search size={20} />
-          </button>
-          <button className="opacity-80 hover:opacity-100 transition-opacity">
-            <User size={20} />
-          </button>
-          <button className="opacity-80 hover:opacity-100 transition-opacity">
-            <ShoppingBag size={20} />
-          </button>
+          <SearchDialog />
+          <AuthButtons />
+          <Cart />
         </div>
 
         {/* Mobile Menu Button */}
@@ -125,15 +122,9 @@ const Navbar: React.FC = () => {
           </nav>
           
           <div className="mt-auto flex items-center space-x-6 pt-8 border-t border-gray-100">
-            <button className="p-2">
-              <Search size={20} />
-            </button>
-            <button className="p-2">
-              <User size={20} />
-            </button>
-            <button className="p-2">
-              <ShoppingBag size={20} />
-            </button>
+            <SearchDialog />
+            <AuthButtons />
+            <Cart />
           </div>
         </div>
       </div>

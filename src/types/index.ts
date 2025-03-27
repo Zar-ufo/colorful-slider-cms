@@ -32,3 +32,13 @@ export interface User {
   lastName?: string;
   role: 'admin' | 'customer';
 }
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface SearchResult {
+  products: Product[];
+  totalCount: number;
+}

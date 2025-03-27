@@ -16,7 +16,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   title,
   subtitle,
-  columns = 4,
+  columns = 2, // Changed default from 4 to 2 to ensure at least 2 products per row
   className,
 }) => {
   if (!products || products.length === 0) {
